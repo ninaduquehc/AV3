@@ -1,14 +1,14 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: greencode_postgres
+    container_name: greencode_av3_postgres
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
       POSTGRES_DB: greencode_db
     ports:
-      - '5434:5432'
+      - '5435:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

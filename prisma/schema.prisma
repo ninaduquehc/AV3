@@ -31,6 +31,14 @@ enum StatusEquipamento {
   REUSO
 }
 
+enum CondicaoFisica {
+  NAO_AVALIADO
+  BOM
+  REGULAR
+  RUIM
+  INSERVIVEL
+}
+
 enum TipoOrganizacao {
   gerador
   operador_logistico
@@ -96,6 +104,11 @@ model Equipamento {
   id                  String            @id @default(uuid())
   codigoBarrasInterno String            @unique
   tipo                String
+  marca               String?
+  modelo              String?
+  condicaoFisica      CondicaoFisica    @default(NAO_AVALIADO)
+  anoFabricacao       Int?
+  dataAvaliacao       DateTime?
   status              StatusEquipamento @default(RECEBIDO)
   version             Int               @default(0)
   loteId              String

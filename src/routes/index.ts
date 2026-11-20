@@ -4,6 +4,7 @@ import { contratoRoutes } from './contrato.routes.js';
 import { loteRoutes } from './lote.routes.js';
 import { equipamentoRoutes } from './equipamento.routes.js';
 import { movimentacaoRoutes } from './movimentacao.routes.js';
+import { analyticsRoutes } from './analytics.routes.js';
 
 export const appRoutes: FastifyPluginAsyncZod = async (app) => {
   await app.register(organizacaoRoutes);
@@ -11,4 +12,5 @@ export const appRoutes: FastifyPluginAsyncZod = async (app) => {
   await app.register(loteRoutes);
   await app.register(equipamentoRoutes);
   await app.register(movimentacaoRoutes);
+  await app.register(analyticsRoutes);
 };

@@ -72,6 +72,7 @@ export async function buildApp() {
         { name: "Lotes", description: "Lotes de recolhimento de resíduos eletrônicos" },
         { name: "Equipamentos", description: "Itens individuais triados e acompanhados no fluxo" },
         { name: "Movimentações", description: "Rastreabilidade e histórico de alterações com bloqueio otimista" },
+        { name: "Analytics", description: "Métricas agregadas e relatórios preditivos: eficiência operacional, rentabilidade e vida útil" },
         { name: "Health", description: "Verificação da saúde e funcionamento da API" },
       ],
       components: {

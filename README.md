@@ -22,7 +22,7 @@ API RESTful para gestão de logística reversa, rastreabilidade e reciclagem de 
 - **Controle de Concorrência Otimista (OCC):** prevenção de *race conditions* e edições simultâneas através do versionamento atômico (`version`).
 - **Autenticação e RBAC:** controle de acesso baseado em perfis (`ADMIN`, `OPERADOR`, `CLIENTE`) via tokens JWT stateless.
 - **Rastreabilidade e Auditoria:** histórico de movimentações por equipamento com proteção por chave estrangeira `Restrict`.
-- **Cálculo Financeiro de Contratos:** estimativa de faturamento (valor base mensal + tarifa por kg + multa potencial) pela rota `GET /contratos/:id/faturamento?pesoTotalKg=100`, disponível para `ADMIN` e `OPERADOR`.
+- **Cálculo Financeiro de Contratos:** estimativa de faturamento (valor base mensal + tarifa por kg + multa potencial) pela rota `GET /api/v1/internal/contratos/:id/faturamento?pesoTotalKg=100`, disponível para `ADMIN` e `OPERADOR`.
 - **Resiliência:** tratamento centralizado de exceções, *rate limiting* contra ataques de força bruta e suporte a *Graceful Shutdown* (`SIGINT`/`SIGTERM`).
 
 ---
@@ -42,8 +42,8 @@ API RESTful para gestão de logística reversa, rastreabilidade e reciclagem de 
 Clone o repositório e acesse a pasta do projeto:
 
 ```bash
-git clone https://github.com/ninaduquehc/AV2.git
-cd AV2
+git clone https://github.com/ninaduquehc/AV3.git
+cd AV3
 ```
 
 Copie o arquivo de exemplo das variáveis de ambiente.
@@ -70,6 +70,7 @@ Copy-Item .env.example .env
 
 ```bash
 docker-compose up -d
+> O Docker sobe o PostgreSQL (porta 5435) e o Redis (porta 6380). O Redis é usado pela fila de relatórios.
 npm install
 ```
 
@@ -123,9 +124,9 @@ Os testes cobrem autenticação (401), RBAC (403), validações Zod (400), FSM (
 
 ## 📚 Documentação Complementar
 
-- 🔒 **Segurança:** políticas de *rate limiting*, *timing attacks* e proteções web em [`DOCS/SEGURANCA.md`](DOCS/SEGURANCA.md).
-- 📐 **Arquitetura e FSM:** diagrama de classes UML e fluxo de estados dos equipamentos em [`DOCS/UML.md`](DOCS/UML.md).
-- 💡 **Decisões Técnicas:** justificativas de tecnologia, *trade-offs* e escolhas de design em [`DOCS/DECISOES.md`](DOCS/DECISOES.md).
+- 🔒 **Segurança:** políticas de *rate limiting*, *timing attacks* e proteções web em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
+- 📐 **Arquitetura e FSM:** diagrama de classes UML e fluxo de estados dos equipamentos em [`docs/UML.md`](docs/UML.md).
+- 💡 **Decisões Técnicas:** justificativas de tecnologia, *trade-offs* e escolhas de design em [`docs/DECISOES.md`](docs/DECISOES.md).
 
 ---
 

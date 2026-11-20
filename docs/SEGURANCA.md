@@ -4,7 +4,7 @@
 ## 1. Proteção contra Timing Attacks e Brute Force no Login
 
 - **Constant Time Lookup:** utilização de um hash fixo de 60 caracteres (`HASH_FALSO`) no `bcrypt.compare` quando o e-mail informado não está cadastrado, reduzindo diferenças no tempo de resposta e dificultando a enumeração de usuários.
-- **Rate Limiting Estrito no Login:** o endpoint `/auth/login` é limitado a, no máximo, 5 requisições por minuto por endereço IP em ambientes de desenvolvimento e produção.
+- **Rate Limiting Estrito no Login:** o endpoint `/api/v1/internal/auth/login` é limitado a, no máximo, 5 requisições por minuto por endereço IP em ambientes de desenvolvimento e produção.
 - **Ambiente de Testes:** o rate limiting do login é desativado automaticamente quando `NODE_ENV=test`.
 - **Rate Limiting Global:** limite de 100 requisições por minuto por endereço IP para as demais rotas.
 

@@ -14,21 +14,21 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
 
     const resAdmin = await app.inject({
       method: 'POST',
-      url: '/auth/login',
+      url: '/api/v1/internal/auth/login',
       payload: { email: 'admin@greencode.com', senha: 'admin123' },
     });
     tokenAdmin = resAdmin.json().token;
 
     const resOperador = await app.inject({
       method: 'POST',
-      url: '/auth/login',
+      url: '/api/v1/internal/auth/login',
       payload: { email: 'operador@greencode.com', senha: 'operador123' },
     });
     tokenOperador = resOperador.json().token;
 
     const orgsRes = await app.inject({
       method: 'GET',
-      url: '/organizacoes',
+      url: '/api/v1/internal/organizacoes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
     });
     organizacaoId = orgsRes.json()[0].id;
@@ -47,7 +47,7 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('Validação (400): Deve rejeitar login com e-mail em formato inválido', async () => {
     const res = await app.inject({
       method: 'POST',
-      url: '/auth/login',
+      url: '/api/v1/internal/auth/login',
       payload: { email: 'email-invalido', senha: '123' },
     });
     expect(res.statusCode).toBe(400);
@@ -57,7 +57,7 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('RBAC (403): OPERADOR não deve conseguir apagar usuários', async () => {
     const res = await app.inject({
       method: 'DELETE',
-      url: '/usuarios/00000000-0000-0000-0000-000000000000',
+      url: '/api/v1/internal/usuarios/00000000-0000-0000-0000-000000000000',
       headers: { authorization: `Bearer ${tokenOperador}` },
     });
     expect(res.statusCode).toBe(403);
@@ -66,7 +66,7 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('Regra de Negócio (409): Não deve permitir remover lote que contém equipamentos', async () => {
     const loteRes = await app.inject({
       method: 'POST',
-      url: '/lotes',
+      url: '/api/v1/internal/lotes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigo: `LOT-DEL-${Date.now()}`, organizacaoId },
     });
@@ -74,14 +74,14 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
 
     await app.inject({
       method: 'POST',
-      url: '/equipamentos',
+      url: '/api/v1/internal/equipamentos',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigoBarrasInterno: `EQP-DEL-${Date.now()}`, tipo: 'Monitor', loteId },
     });
 
     const delRes = await app.inject({
       method: 'DELETE',
-      url: `/lotes/${loteId}`,
+      url: `/api/v1/internal/lotes/${loteId}`,
       headers: { authorization: `Bearer ${tokenAdmin}` },
     });
 
@@ -92,7 +92,7 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('Movimentação em Massa (201): Deve movimentar múltiplos equipamentos e sincronizar o Lote', async () => {
     const loteRes = await app.inject({
       method: 'POST',
-      url: '/lotes',
+      url: '/api/v1/internal/lotes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigo: `LOT-MASSA-${Date.now()}`, organizacaoId },
     });
@@ -100,20 +100,20 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
 
     const eq1 = await app.inject({
       method: 'POST',
-      url: '/equipamentos',
+      url: '/api/v1/internal/equipamentos',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigoBarrasInterno: `EQP-M1-${Date.now()}`, tipo: 'Teclado', loteId },
     });
     const eq2 = await app.inject({
       method: 'POST',
-      url: '/equipamentos',
+      url: '/api/v1/internal/equipamentos',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigoBarrasInterno: `EQP-M2-${Date.now()}`, tipo: 'Mouse', loteId },
     });
 
     const res = await app.inject({
       method: 'POST',
-      url: '/movimentacoes/em-massa',
+      url: '/api/v1/internal/movimentacoes/em-massa',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: {
         itens: [
@@ -132,7 +132,7 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
     // Verifica se o Lote foi sincronizado para EM_TRIAGEM
     const loteCheck = await app.inject({
       method: 'GET',
-      url: `/lotes/${loteId}`,
+      url: `/api/v1/internal/lotes/${loteId}`,
       headers: { authorization: `Bearer ${tokenAdmin}` },
     });
     expect(loteCheck.json().status).toBe('EM_TRIAGEM');
@@ -141,14 +141,14 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('Concorrência Real - Bloqueio Otimista (409): Requisições simultâneas devem resultar em 1 Sucesso (201) e 1 Conflito (409)', async () => {
     const loteRes = await app.inject({
       method: 'POST',
-      url: '/lotes',
+      url: '/api/v1/internal/lotes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigo: `LOT-RACE-${Date.now()}`, organizacaoId },
     });
 
     const eqRes = await app.inject({
       method: 'POST',
-      url: '/equipamentos',
+      url: '/api/v1/internal/equipamentos',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigoBarrasInterno: `EQP-RACE-${Date.now()}`, tipo: 'Nobreak', loteId: loteRes.json().id },
     });
@@ -158,13 +158,13 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
     const [req1, req2] = await Promise.all([
       app.inject({
         method: 'POST',
-        url: '/movimentacoes',
+        url: '/api/v1/internal/movimentacoes',
         headers: { authorization: `Bearer ${tokenAdmin}` },
         payload: { equipamentoId: eqId, statusNovo: 'EM_TRIAGEM', version: 0 },
       }),
       app.inject({
         method: 'POST',
-        url: '/movimentacoes',
+        url: '/api/v1/internal/movimentacoes',
         headers: { authorization: `Bearer ${tokenAdmin}` },
         payload: { equipamentoId: eqId, statusNovo: 'EM_TRIAGEM', version: 0 },
       }),
@@ -177,14 +177,14 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   });
 
   it('Autenticação (401): Deve rejeitar acesso sem token', async () => {
-    const res = await app.inject({ method: 'GET', url: '/organizacoes' });
+    const res = await app.inject({ method: 'GET', url: '/api/v1/internal/organizacoes' });
     expect(res.statusCode).toBe(401);
   });
 
   it('Autenticação (401): Deve rejeitar login com senha incorreta', async () => {
     const res = await app.inject({
       method: 'POST',
-      url: '/auth/login',
+      url: '/api/v1/internal/auth/login',
       payload: { email: 'admin@greencode.com', senha: 'senha-errada' },
     });
     expect(res.statusCode).toBe(401);
@@ -193,7 +193,7 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('Validação (400): Deve rejeitar organização com CNPJ inválido', async () => {
     const res = await app.inject({
       method: 'POST',
-      url: '/organizacoes',
+      url: '/api/v1/internal/organizacoes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { nome: 'Empresa Teste', cnpj: '11111111111111', tipo: 'gerador' },
     });
@@ -204,21 +204,21 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('FSM (422): Deve rejeitar transição inválida de RECEBIDO para DESCARTE', async () => {
     const loteRes = await app.inject({
       method: 'POST',
-      url: '/lotes',
+      url: '/api/v1/internal/lotes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigo: `LOT-FSM-${Date.now()}`, organizacaoId },
     });
 
     const eqRes = await app.inject({
       method: 'POST',
-      url: '/equipamentos',
+      url: '/api/v1/internal/equipamentos',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { codigoBarrasInterno: `EQP-FSM-${Date.now()}`, tipo: 'Impressora', loteId: loteRes.json().id },
     });
 
     const res = await app.inject({
       method: 'POST',
-      url: '/movimentacoes',
+      url: '/api/v1/internal/movimentacoes',
       headers: { authorization: `Bearer ${tokenAdmin}` },
       payload: { equipamentoId: eqRes.json().id, statusNovo: 'DESCARTE', version: 0 },
     });
@@ -230,18 +230,61 @@ describe('GreenCode API - Suíte Completa de Testes e Regras de Negócio', () =>
   it('Contrato (200): Deve calcular a estimativa de faturamento', async () => {
     const contratosRes = await app.inject({
       method: 'GET',
-      url: '/contratos',
+      url: '/api/v1/internal/contratos',
       headers: { authorization: `Bearer ${tokenAdmin}` },
     });
     const contrato = contratosRes.json().find((c: { numeroContrato: string }) => c.numeroContrato === 'CTR-2026-001');
 
     const res = await app.inject({
       method: 'GET',
-      url: `/contratos/${contrato.id}/faturamento?pesoTotalKg=100`,
+      url: `/api/v1/internal/contratos/${contrato.id}/faturamento?pesoTotalKg=100`,
       headers: { authorization: `Bearer ${tokenAdmin}` },
     });
 
     expect(res.statusCode).toBe(200);
     expect(res.json().totalEstimado).toBe(15450);
   });
+
+  it('Equipamento (201): deve persistir e devolver marca, modelo, condição e valor de recuperação', async () => {
+    const headers = { authorization: `Bearer ${tokenAdmin}` };
+    const loteRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/internal/lotes',
+      headers,
+      payload: { codigo: `LOT-AVAL-${Date.now()}`, organizacaoId },
+    });
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/internal/equipamentos',
+      headers,
+      payload: {
+        codigoBarrasInterno: `EQP-AVAL-${Date.now()}`,
+        tipo: 'Notebook',
+        marca: 'Dell',
+        modelo: 'Latitude 5420',
+        condicaoFisica: 'BOM',
+        anoFabricacao: 2021,
+        valorRecuperacao: 350.5,
+        loteId: loteRes.json().id,
+      },
+    });
+
+    expect(res.statusCode).toBe(201);
+    const eq = res.json();
+    expect(eq.marca).toBe('Dell');
+    expect(eq.condicaoFisica).toBe('BOM');
+    expect(eq.valorRecuperacao).toBe(350.5);
+    expect(eq.dataAvaliacao).toBeTruthy();
+  });
+
+  it('Rotas antigas sem prefixo não existem mais (404)', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/lotes',
+      headers: { authorization: `Bearer ${tokenAdmin}` },
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
 });

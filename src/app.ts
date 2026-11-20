@@ -111,9 +111,10 @@ export async function buildApp() {
     return { status: "ok", timestamp: new Date().toISOString() };
   });
 
-  await app.register(authRoutes);
-  await app.register(usuarioRoutes);
-  await app.register(appRoutes);
+  const INTERNAL = "/api/v1/internal";
+  await app.register(authRoutes, { prefix: INTERNAL });
+  await app.register(usuarioRoutes, { prefix: INTERNAL });
+  await app.register(appRoutes, { prefix: INTERNAL });
 
   return app;
 }

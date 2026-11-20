@@ -13,6 +13,8 @@ API RESTful para gestão de logística reversa, rastreabilidade e reciclagem de 
 - **Vitest** (testes de integração automatizados)
 - **Swagger UI** (documentação interativa das rotas)
 - **Docker Compose** (containerização do banco de dados)
+- **BullMQ** e **Redis 7** (fila de relatórios assíncronos e agendamento das análises)
+- **simple-statistics** (estatística e regressão linear das análises)
 
 ---
 
@@ -24,6 +26,10 @@ API RESTful para gestão de logística reversa, rastreabilidade e reciclagem de 
 - **Rastreabilidade e Auditoria:** histórico de movimentações por equipamento com proteção por chave estrangeira `Restrict`.
 - **Cálculo Financeiro de Contratos:** estimativa de faturamento (valor base mensal + tarifa por kg + multa potencial) pela rota `GET /api/v1/internal/contratos/:id/faturamento?pesoTotalKg=100`, disponível para `ADMIN` e `OPERADOR`.
 - **Resiliência:** tratamento centralizado de exceções, *rate limiting* contra ataques de força bruta e suporte a *Graceful Shutdown* (`SIGINT`/`SIGTERM`).
+- **Camada Analítica:** eficiência operacional (tempo de triagem, gargalos, operadores e meses), rentabilidade por tipo, condição, marca e modelo, e previsão de vida útil por regressão linear, com histórico persistido. Endpoints em `/api/v1/internal/analytics`.
+- **API Pública v1 (`/api/v1/public`):** autenticação por chave de API (`x-api-key`), permissões por escopo, isolamento por organização e limite de requisições por chave.
+- **Relatórios Assíncronos:** o `POST` devolve um `jobId`; o worker (BullMQ + Redis) processa com retry e backoff exponencial; status por polling e download em CSV ou JSON.
+- **Análises Agendadas:** recálculo diário automático das análises (job recorrente da fila).
 
 ---
 
@@ -69,8 +75,9 @@ Copy-Item .env.example .env
 ### 2. Inicie o PostgreSQL via Docker e instale as dependências
 
 ```bash
-docker-compose up -d
+docker compose up -d
 > O Docker sobe o PostgreSQL (porta 5435) e o Redis (porta 6380). O Redis é usado pela fila de relatórios.
+> Em instalações antigas do Docker, o comando equivalente é `docker-compose up -d`.
 npm install
 ```
 
@@ -146,13 +153,20 @@ Para ver funcionando sem esperar até as 02:00, ponha `ANALYTICS_CRON="* * * * *
 
 ## 🧪 Testes Automatizados
 
-Para executar a suíte de testes de integração com Vitest, utilize:
-
 ```bash
+npm run seed
 npm test
 ```
 
-Os testes cobrem autenticação (401), RBAC (403), validações Zod (400), FSM (422), regras de negócio e concorrência otimista (409), movimentação em massa e cálculo de faturamento. Eles usam os dados do seed, então rode `npm run seed` antes.
+São testes de integração (Vitest + `app.inject`) que usam os dados do seed e o **Redis** (`docker compose up -d` sobe o banco e o Redis). Rode `npm run seed` antes, porque os testes criam registros e dependem dos dados do seed (rodar o seed de novo também devolve o banco ao estado limpo).
+
+| Arquivo | O que cobre |
+|---|---|
+| `api.test.ts` | Autenticação (401), RBAC (403), validações Zod (400), FSM (422), regras de negócio, concorrência otimista (409), movimentação em massa, faturamento e campos de avaliação do equipamento |
+| `analytics.test.ts` | Funções estatísticas puras (regressão, resumo, eficiência) e endpoints de analytics, com persistência e histórico |
+| `public-api.test.ts` | Chaves de API (401/403), escopos, isolamento por organização, rate limit por chave (429), ciclo de vida da chave e Swagger público e interno |
+| `relatorios.test.ts` | Relatório assíncrono completo (202, status, download), CSV, anonimização, retry e falha definitiva |
+| `agendamento.test.ts` | Registro idempotente do job recorrente e execução do recálculo |
 
 ---
 
@@ -161,6 +175,7 @@ Os testes cobrem autenticação (401), RBAC (403), validações Zod (400), FSM (
 - 🔒 **Segurança:** políticas de *rate limiting*, *timing attacks* e proteções web em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
 - 📐 **Arquitetura e FSM:** diagrama de classes UML e fluxo de estados dos equipamentos em [`docs/UML.md`](docs/UML.md).
 - 💡 **Decisões Técnicas:** justificativas de tecnologia, *trade-offs* e escolhas de design em [`docs/DECISOES.md`](docs/DECISOES.md).
+- 📝 **Relatório Técnico (AV3):** biblioteca estatística, modelagem das tabelas analíticas, política de retry e evolução da arquitetura em [`docs/RELATORIO_TECNICO.md`](docs/RELATORIO_TECNICO.md).
 
 ---
 

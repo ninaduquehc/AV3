@@ -93,9 +93,14 @@ npm run dev
 
 ## 📖 Documentação das Rotas (Swagger)
 
-Com a aplicação em execução, acesse a documentação interativa OpenAPI no navegador:
+Com a aplicação em execução:
 
-**Swagger UI:** http://localhost:3000/docs
+| Documentação | URL | Autenticação |
+|---|---|---|
+| **API interna** (front-end e equipe de gestão) | http://localhost:3000/docs/internal | Token JWT |
+| **API pública v1** (parceiros) | http://localhost:3000/docs/public | Chave de API (`x-api-key`) |
+
+`http://localhost:3000/docs` redireciona para a documentação interna.
 
 ---
 
@@ -109,6 +114,18 @@ Após executar `npm run seed`, utilize as credenciais abaixo para autenticação
 | **OPERADOR** | `operador@greencode.com` | `operador123` | Gestão operacional: lotes, equipamentos e movimentações |
 | **OPERADOR** | `operador2@greencode.com` | `operador123` | Mesmo perfil, usado para comparar desempenho entre operadores |
 | **OPERADOR** | `operador3@greencode.com` | `operador123` | Mesmo perfil, usado para comparar desempenho entre operadores |
+
+### Chaves de API de demonstração (Seed)
+
+Para testar a API pública em `/docs/public` (botão **Authorize**) ou via `curl`, use o cabeçalho `x-api-key`:
+
+| Parceiro | Chave | Escopos | Limite |
+|---|---|---|---|
+| Tech Solutions | `gc_demo0001_3f9a1c5e7b2d4a6c8e0f1b3d5a7c9e2f` | Rastreabilidade, leitura e escrita de lotes, relatórios | 60/min |
+| Verde Corp | `gc_demo0002_8b4d6f0a2c4e6a8c0e2a4c6e8a0c2e4f` | Somente rastreabilidade | 60/min |
+| Banco Digital | `gc_demo0003_c1e3a5d7f9b1c3e5a7d9f1b3c5e7a9d1` | Somente leitura de lotes | 3/min |
+
+> Essas chaves existem apenas no seed de desenvolvimento (o seed é bloqueado em produção). Em produção, as chaves são geradas por um ADMIN em `POST /api/v1/internal/api-keys`.
 
 ---
 

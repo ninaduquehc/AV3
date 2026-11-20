@@ -127,12 +127,13 @@ describe('Analytics - endpoints internos', () => {
 
   it('RBAC (403): CLIENTE não acessa analytics', async () => {
     const email = `cliente.${Date.now()}@greencode.com`;
-    await app.inject({
+    const criado = await app.inject({
       method: 'POST',
       url: '/api/v1/internal/usuarios',
       headers: auth(tokenAdmin),
       payload: { nome: 'Cliente Teste', email, senha: 'cliente123', role: 'CLIENTE' },
     });
+    expect(criado.statusCode).toBe(201);
     const login = await app.inject({
       method: 'POST',
       url: '/api/v1/internal/auth/login',

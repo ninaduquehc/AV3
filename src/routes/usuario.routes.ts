@@ -10,7 +10,7 @@ const usuarioSchema = z.object({
   nome: z.string().describe("Nome completo do usuário"),
   email: z.string().email().describe("E-mail corporativo cadastrado"),
   role: z.nativeEnum(Role).describe("Perfil de acesso (ADMIN, OPERADOR, CLIENTE)"),
-  createdAt: z.string().datetime().optional(),
+  createdAt: z.string().or(z.date()).optional(),
 });
 
 export const usuarioRoutes: FastifyPluginAsyncZod = async (app) => {

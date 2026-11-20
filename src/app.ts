@@ -19,6 +19,8 @@ import { usuarioRoutes } from "./routes/usuario.routes.js";
 import { apiKeyRoutes } from "./routes/apikey.routes.js";
 import { appRoutes } from "./routes/index.js";
 import { publicRoutes } from "./routes/public.routes.js";
+import { publicRelatoriosRoutes } from "./routes/public-relatorios.routes.js";
+import { fecharFila } from "./queue/relatorio.queue.js";
 import { tratadorDeErros } from "./utils/http.js";
 
 const INTERNAL = "/api/v1/internal";
@@ -40,6 +42,7 @@ export async function buildApp() {
   app.setNotFoundHandler((_req, reply) => reply.status(404).send({ error: "Rota não encontrada." }));
 
   app.addHook("onClose", async () => {
+    await fecharFila();
     await prisma.$disconnect();
   });
 
@@ -147,6 +150,7 @@ export async function buildApp() {
         tags: [
           { name: "Rastreabilidade", description: "Consulta do histórico de movimentações de equipamentos" },
           { name: "Lotes", description: "Consulta e submissão de lotes com inventário" },
+          { name: "Relatórios", description: "Geração assíncrona de relatórios analíticos (fila): solicitar, acompanhar e baixar" },
         ],
         components: {
           securitySchemes: {
@@ -178,6 +182,7 @@ export async function buildApp() {
     });
 
     await publico.register(publicRoutes, { prefix: PUBLIC });
+    await publico.register(publicRelatoriosRoutes, { prefix: PUBLIC });
   });
 
   return app;

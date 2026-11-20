@@ -109,6 +109,7 @@ model Equipamento {
   condicaoFisica      CondicaoFisica    @default(NAO_AVALIADO)
   anoFabricacao       Int?
   dataAvaliacao       DateTime?
+  valorRecuperacao    Decimal?          @db.Decimal(12, 2)
   status              StatusEquipamento @default(RECEBIDO)
   version             Int               @default(0)
   loteId              String

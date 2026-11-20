@@ -5,3 +5,8 @@ coverage/
 *.log
 exportar_projeto.bat    
 projeto_completo.txt
+
+.agents/
+.claude/
+.cursor/
+.devin/

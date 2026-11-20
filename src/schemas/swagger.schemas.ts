@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { StatusEquipamento, StatusLote } from '@prisma/client';
+import { StatusEquipamento, StatusLote, CondicaoFisica } from '@prisma/client';
 
 export const schemaTipoOrg = z
   .enum(["gerador", "operador_logistico", "desmontadora", "comprador"])
@@ -8,6 +8,13 @@ export type TipoOrganizacao = z.infer<typeof schemaTipoOrg>;
 
 export const schemaStatusLote = z.nativeEnum(StatusLote).describe("Status atual de processamento do lote");
 export const schemaStatusEquipamento = z.nativeEnum(StatusEquipamento).describe("Status do ciclo de vida do equipamento");
+
+export const schemaCondicaoFisica = z.nativeEnum(CondicaoFisica).describe("Condição física avaliada do equipamento");
+
+// Prisma devolve Decimal (objeto); a resposta precisa sair como número.
+const valorMonetarioSchema = z
+  .preprocess((v) => (v === null || v === undefined ? v : Number(v)), z.number().nullable())
+  .optional();
 
 export const erroSchema = z.object({
   error: z.string().describe("Mensagem descritiva do erro"),
@@ -67,6 +74,12 @@ export const equipamentoSchema = z.object({
   id: z.string().uuid().describe("ID único do equipamento"),
   codigoBarrasInterno: z.string().describe("Código de barras ou número de série do equipamento"),
   tipo: z.string().describe("Categoria do e-lixo (ex: Notebook, Monitor, Servidor)"),
+  marca: z.string().nullable().optional().describe("Marca do equipamento"),
+  modelo: z.string().nullable().optional().describe("Modelo do equipamento"),
+  condicaoFisica: schemaCondicaoFisica,
+  anoFabricacao: z.number().int().nullable().optional().describe("Ano de fabricação"),
+  dataAvaliacao: z.string().or(z.date()).nullable().optional().describe("Data da última avaliação física"),
+  valorRecuperacao: valorMonetarioSchema.describe("Valor de recuperação de materiais (R$)"),
   status: schemaStatusEquipamento,
   version: z.number().int().min(0).describe("Versão incremental para controle de concorrência (Bloqueio Otimista / OCC)"),
   loteId: z.string().uuid().describe("ID do lote ao qual o equipamento pertence"),

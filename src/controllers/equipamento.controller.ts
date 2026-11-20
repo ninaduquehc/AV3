@@ -9,7 +9,10 @@ export class EquipamentoController {
   async create(req: FastifyRequest, reply: FastifyReply) {
     try {
       const body = req.body as any;
-      const result = await this.service.criar(body);
+      const result = await this.service.criar({
+        ...body,
+        dataAvaliacao: body.dataAvaliacao ? new Date(body.dataAvaliacao) : undefined,
+      });
       return reply.status(201).send(result);
     } catch (err) {
       return responderErro(reply, err);
@@ -49,8 +52,11 @@ export class EquipamentoController {
   async update(req: FastifyRequest, reply: FastifyReply) {
     try {
       const { id } = req.params as { id: string };
-      const body = req.body as { tipo?: string };
-      const result = await this.service.atualizar(id, body);
+      const body = req.body as any;
+      const result = await this.service.atualizar(id, {
+        ...body,
+        dataAvaliacao: body.dataAvaliacao ? new Date(body.dataAvaliacao) : undefined,
+      });
       return reply.send(result);
     } catch (err) {
       return responderErro(reply, err);

@@ -1,19 +1,36 @@
 import { EquipamentoRepository } from '../repositories/equipamento.repository.js';
-import { StatusEquipamento, StatusLote } from '@prisma/client';
+import { StatusEquipamento, StatusLote, CondicaoFisica } from '@prisma/client';
 import { LoteRepository } from '../repositories/lote.repository.js';
 import { AppError } from '../models/erros.js';
+
+type DadosAvaliacao = {
+  marca?: string;
+  modelo?: string;
+  condicaoFisica?: CondicaoFisica;
+  anoFabricacao?: number;
+  dataAvaliacao?: Date;
+  valorRecuperacao?: number;
+};
 
 export class EquipamentoService {
   constructor(
     private repo = new EquipamentoRepository(),
     private loteRepo = new LoteRepository()
-  ) {}
+  ) { }
+
+  // Se informaram uma condição avaliada sem data, registra agora.
+  // A análise de vida útil depende dessa data.
+  private normalizarAvaliacao<T extends DadosAvaliacao>(dados: T): T {
+    const avaliado = dados.condicaoFisica && dados.condicaoFisica !== CondicaoFisica.NAO_AVALIADO;
+    if (avaliado && !dados.dataAvaliacao) return { ...dados, dataAvaliacao: new Date() };
+    return dados;
+  }
 
   async criar(data: {
     codigoBarrasInterno: string;
     tipo: string;
     loteId: string;
-  }) {
+  } & DadosAvaliacao) {
     const lote = await this.loteRepo.findById(data.loteId);
     if (!lote) throw new AppError('Lote especificado não encontrado.', 404);
 
@@ -24,11 +41,14 @@ export class EquipamentoService {
     const existe = await this.repo.findByCodigoBarras(data.codigoBarrasInterno);
     if (existe) throw new AppError('Código de barras já cadastrado.', 409);
 
+    const { codigoBarrasInterno, tipo, loteId, ...avaliacao } = data;
+
     return this.repo.create({
-      codigoBarrasInterno: data.codigoBarrasInterno,
-      tipo: data.tipo,
+      codigoBarrasInterno,
+      tipo,
+      loteId,
       status: StatusEquipamento.RECEBIDO,
-      loteId: data.loteId,
+      ...this.normalizarAvaliacao(avaliacao),
     });
   }
 
@@ -42,9 +62,9 @@ export class EquipamentoService {
     return this.repo.findAll(params);
   }
 
-  async atualizar(id: string, data: { tipo?: string }) {
+  async atualizar(id: string, data: { tipo?: string } & DadosAvaliacao) {
     await this.buscarPorId(id);
-    return this.repo.update(id, data);
+    return this.repo.update(id, this.normalizarAvaliacao(data));
   }
 
   async remover(id: string) {

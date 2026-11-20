@@ -2,6 +2,7 @@ import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
   schemaStatusEquipamento,
+  schemaCondicaoFisica,
   erroSchema,
   equipamentoSchema,
 } from '../schemas/swagger.schemas.js';
@@ -20,6 +21,12 @@ export const equipamentoRoutes: FastifyPluginAsyncZod = async (app) => {
         codigoBarrasInterno: z.string().min(1),
         tipo: z.string().min(1),
         loteId: z.string().uuid(),
+        marca: z.string().min(1).optional(),
+        modelo: z.string().min(1).optional(),
+        condicaoFisica: schemaCondicaoFisica.optional(),
+        anoFabricacao: z.number().int().min(1980).max(new Date().getFullYear()).optional(),
+        dataAvaliacao: z.string().datetime().optional(),
+        valorRecuperacao: z.number().min(0).optional(),
       }),
       response: {
         201: equipamentoSchema,
@@ -76,10 +83,16 @@ export const equipamentoRoutes: FastifyPluginAsyncZod = async (app) => {
     onRequest: [authenticate, authorize(['ADMIN', 'OPERADOR'])],
     schema: {
       tags: ['Equipamentos'],
-      summary: 'Atualizar tipo de um equipamento',
+      summary: 'Atualizar dados do equipamento',
       params: z.object({ id: z.string().uuid() }),
       body: z.object({
         tipo: z.string().min(1).optional(),
+        marca: z.string().min(1).optional(),
+        modelo: z.string().min(1).optional(),
+        condicaoFisica: schemaCondicaoFisica.optional(),
+        anoFabricacao: z.number().int().min(1980).max(new Date().getFullYear()).optional(),
+        dataAvaliacao: z.string().datetime().optional(),
+        valorRecuperacao: z.number().min(0).optional(),
       }),
       response: {
         200: equipamentoSchema,

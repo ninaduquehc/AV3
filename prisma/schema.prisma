@@ -46,6 +46,36 @@ enum TipoOrganizacao {
   comprador
 }
 
+enum ApiScope {
+  RASTREABILIDADE_READ
+  LOTES_READ
+  LOTES_WRITE
+  RELATORIOS_READ
+}
+
+enum CategoriaAnalise {
+  EFICIENCIA_OPERACIONAL
+  RENTABILIDADE
+  VIDA_UTIL
+}
+
+enum OrigemAnalise {
+  AGENDADO
+  MANUAL
+}
+
+enum StatusRelatorioJob {
+  PENDENTE
+  PROCESSANDO
+  CONCLUIDO
+  FALHA
+}
+
+enum FormatoRelatorio {
+  CSV
+  JSON
+}
+
 model Usuario {
   id            String         @id @default(uuid())
   nome          String
@@ -68,6 +98,7 @@ model Organizacao {
   updatedAt DateTime        @updatedAt
   contrato  Contrato?
   lotes     Lote[]
+  apiKeys   ApiKey[]
 
   @@map("organizacoes")
 }
@@ -133,4 +164,73 @@ model Movimentacao {
   observacao     String?
 
   @@map("movimentacoes")
+}
+
+model ApiKey {
+  id              String         @id @default(uuid())
+  nome            String
+  prefixo         String         @unique
+  hash            String
+  scopes          ApiScope[]
+  limitePorMinuto Int            @default(60)
+  ativa           Boolean        @default(true)
+  organizacaoId   String
+  organizacao     Organizacao    @relation(fields: [organizacaoId], references: [id], onDelete: Restrict)
+  ultimoUsoEm     DateTime?
+  revogadaEm      DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  relatorioJobs   RelatorioJob[]
+
+  @@map("api_keys")
+}
+
+model RelatorioAnalitico {
+  id         String             @id @default(uuid())
+  categoria  CategoriaAnalise
+  origem     OrigemAnalise
+  parametros Json?
+  resultado  Json
+  geradoEm   DateTime           @default(now())
+  previsoes  PrevisaoVidaUtil[]
+
+  @@index([categoria, geradoEm])
+  @@map("relatorios_analiticos")
+}
+
+model PrevisaoVidaUtil {
+  id                           String             @id @default(uuid())
+  relatorioId                  String
+  relatorio                    RelatorioAnalitico @relation(fields: [relatorioId], references: [id], onDelete: Restrict)
+  tipoEquipamento              String
+  amostras                     Int
+  inclinacao                   Float?
+  intercepto                   Float?
+  r2                           Float?
+  vidaUtilEstimadaAnos         Float?
+  idadeInservivelObservadaAnos Float?
+  createdAt                    DateTime           @default(now())
+
+  @@index([tipoEquipamento, createdAt])
+  @@map("previsoes_vida_util")
+}
+
+model RelatorioJob {
+  id           String             @id @default(uuid())
+  categoria    CategoriaAnalise
+  formato      FormatoRelatorio
+  status       StatusRelatorioJob @default(PENDENTE)
+  parametros   Json?
+  tentativas   Int                @default(0)
+  erro         String?
+  resultado    String?            @db.Text
+  apiKeyId     String
+  apiKey       ApiKey             @relation(fields: [apiKeyId], references: [id], onDelete: Restrict)
+  createdAt    DateTime           @default(now())
+  iniciadoEm   DateTime?
+  concluidoEm  DateTime?
+  updatedAt    DateTime           @updatedAt
+
+  @@index([apiKeyId, createdAt])
+  @@map("relatorio_jobs")
 }

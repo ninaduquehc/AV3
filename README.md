@@ -107,6 +107,8 @@ Após executar `npm run seed`, utilize as credenciais abaixo para autenticação
 |---|---|---|---|
 | **ADMIN** | `admin@greencode.com` | `admin123` | Acesso total: usuários, contratos, lotes, equipamentos e organizações |
 | **OPERADOR** | `operador@greencode.com` | `operador123` | Gestão operacional: lotes, equipamentos e movimentações |
+| **OPERADOR** | `operador2@greencode.com` | `operador123` | Mesmo perfil, usado para comparar desempenho entre operadores |
+| **OPERADOR** | `operador3@greencode.com` | `operador123` | Mesmo perfil, usado para comparar desempenho entre operadores |
 
 ---
 

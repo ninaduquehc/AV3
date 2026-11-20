@@ -129,6 +129,21 @@ Para testar a API pública em `/docs/public` (botão **Authorize**) ou via `curl
 
 ---
 
+## ⏰ Análises Agendadas
+
+O sistema recalcula as três análises (eficiência operacional, rentabilidade e vida útil) automaticamente, todo dia às 02:00 (fuso `America/Sao_Paulo`), como um job recorrente da fila (BullMQ). Cada execução grava um novo registro histórico em `relatorios_analiticos` com `origem = AGENDADO`, consultável em `GET /api/v1/internal/analytics/historico`.
+
+| Variável | Padrão | Função |
+|---|---|---|
+| `ANALYTICS_CRON` | `0 2 * * *` | Horário da execução (cron de 5 campos) |
+| `ANALYTICS_TZ` | `America/Sao_Paulo` | Fuso do agendamento |
+| `ENABLE_SCHEDULER` | `true` | `false` desativa o registro do agendamento |
+| `ENABLE_WORKER` | `true` | `false` impede os workers de subirem junto da API (rode `npm run worker`) |
+
+Para ver funcionando sem esperar até as 02:00, ponha `ANALYTICS_CRON="* * * * *"` no `.env` (executa a cada minuto), rode `npm run dev` e consulte o histórico após um minuto.
+
+---
+
 ## 🧪 Testes Automatizados
 
 Para executar a suíte de testes de integração com Vitest, utilize:

@@ -4,7 +4,7 @@ import { UsuarioRepository } from '../repositories/usuario.repository.js';
 import { responderErro } from '../utils/http.js';
 import { AppError } from '../models/erros.js';
 
-const HASH_FALSO = bcrypt.hashSync('senha-descartavel-timing', 10);
+const HASH_FALSO = bcrypt.hashSync('senha-que-destrava-as-ferias-da-marina', 10);
 
 export class AuthController {
   constructor(private repo = new UsuarioRepository()) {}

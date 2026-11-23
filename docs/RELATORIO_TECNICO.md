@@ -180,4 +180,4 @@ sequenceDiagram
 | Plataforma | Validação |
 |---|---|
 | Windows (versão 10.0.26300) | Desenvolvimento e suíte completa de testes |
-| Ubuntu 24.04 | **[PREENCHER NO PASSO 6.3]** |
+| Ubuntu 26.04 LTS (WSL2 no Windows) | Clone limpo, README seguido do zero: migrations em banco novo, seed, 58 testes passando, build de produção, execução com `npm start`, chamada à API pública e encerramento gracioso. O PDF pede 24.04.03 ou superior, e a 26.04 atende. Foi executado em WSL2 (Ubuntu real dentro do Windows), não em máquina Linux nativa. |
